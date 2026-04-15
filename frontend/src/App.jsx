@@ -3,7 +3,7 @@ import Home from "./Home";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
 import Input from "./Input";
-import LearnMore from "./LearnMore";
+import LearnMore from "./Learnmore";
 import PublicPitch from "./PublicPitch";
 import CustomCursor from "./CustomCursor";
 import { ToastContainer } from "react-toastify";
