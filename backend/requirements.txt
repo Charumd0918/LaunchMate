@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+pymongo
+python-dotenv
+bcrypt
+PyJWT
+pydantic
+pydantic[email]
+google-genai

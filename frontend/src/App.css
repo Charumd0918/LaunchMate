@@ -1,0 +1,51 @@
+.home-container {
+  height: 100vh;
+  background: #0f0f0f;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: bold;
+}
+
+.tagline {
+  font-size: 1.5rem;
+  margin: 10px 0;
+  color: #a855f7;
+}
+
+.desc {
+  max-width: 500px;
+  margin-bottom: 20px;
+  color: #ccc;
+}
+
+.buttons {
+  display: flex;
+  gap: 15px;
+}
+
+.btn {
+  padding: 10px 20px;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  border-radius: 8px;
+}
+
+.primary {
+  background:#7330b1;
+  color: white;
+}
+
+.secondary {
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+}
