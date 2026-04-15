@@ -162,7 +162,7 @@ def risk_detector(idea: str, current_user: UserOut = Depends(get_current_user)):
         if cached and "overallThreatLevel" in cached.get("result", {}): 
             return {"success": True, "data": cached["result"], "cached": True}
 
-        result = analyze_risk(idea)
+        result = detect_risks(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "risk"}, {"$set": {"result": result}}, upsert=True)
         return {"success": True, "data": result}
     except Exception as e:
@@ -293,21 +293,6 @@ def save_execution_board(data: dict, current_user: UserOut = Depends(get_current
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-@api_router.get("/risk")
-def calculate_risk(idea: str, current_user: UserOut = Depends(get_current_user)):
-    try:
-        result = detect_risks(idea)
-        return {"success": True, "data": result}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-@api_router.get("/competitors")
-def competitors(idea: str, current_user: UserOut = Depends(get_current_user)):
-    try:
-        result = find_competitors(idea)
-        return {"success": True, "data": result}
-    except Exception as e:
-        return {"success": False, "error": str(e)}
 
 @api_router.get("/public/pitch/{idea_id}")
 def get_public_pitch(idea_id: str):
@@ -455,24 +440,6 @@ def business_plan(idea: str, current_user: UserOut = Depends(get_current_user)):
         "message": "Business plan saved successfully"
     }
     
-@api_router.get("/pitch")
-def pitch(idea: str, current_user: UserOut = Depends(get_current_user)):
-    result = generate_pitch(idea)
-
-    pitch_data = {
-        "user_id": current_user.id,
-        "idea": idea,
-        "tagline": result.get("tagline", ""),
-        "elevator_pitch": result.get("elevator_pitch", ""),
-        "investor_pitch": result.get("investor_pitch", "")
-    }
-
-    ideas_collection.insert_one(pitch_data)
-
-    return {
-        "pitch": result,
-        "message": "Pitch saved successfully"
-    }
 
 @api_router.get("/first-users")
 def first_users(idea: str, current_user: UserOut = Depends(get_current_user)):
