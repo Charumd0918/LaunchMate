@@ -2,17 +2,17 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const SEQUENCES = [
-  "INITIALIZING NEURAL LINK...",
-  "AUDITING MARKET SATURATION...",
-  "SYNTHESIZING REVENUE MODELS...",
+  "ENGAGING SOVEREIGN CORE...",
+  "AUDITING MARKET ARBITRAGE...",
+  "SYNTHESIZING TACTICAL MOATS...",
   "EXTRACTING COMPETITIVE GAPS...",
   "MAPPING GROWTH TRAJECTORIES...",
-  "ENCRYPTING STRATEGIC BLUEPRINT...",
+  "PROTOCOL AUDIT: INITIALIZED...",
   "CALCULATING EXIT MULTIPLES...",
   "FINALIZING COMMAND DASHBOARD..."
 ];
 
-export default function CinematicLoader({ isLoading, message = "Processing..." }) {
+export default function CinematicLoader({ isLoading }) {
   const [currentStep, setCurrentStep] = useState(0);
 
   useEffect(() => {

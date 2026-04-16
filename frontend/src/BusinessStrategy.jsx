@@ -1,23 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "./api";
 
 function BusinessStrategy({ setActivePage, idea }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get(`/business-plan?idea=${encodeURIComponent(idea)}`);
-        setData(response.data.business_plan || response.data.data);
-      } catch (err) {
-        console.error("Error fetching business strategy:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    if (idea) fetchData();
+  const fetchData = useCallback(async (refresh = false) => {
+    try {
+      setLoading(true);
+      const url = `/strategy?idea=${encodeURIComponent(idea)}${refresh ? '&refresh=true' : ''}`;
+      const response = await api.get(url);
+      setData(response.data.data);
+    } catch (err) {
+      console.error("Error fetching business strategy:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [idea]);
+
+  useEffect(() => {
+    if (idea) fetchData();
+  }, [idea, fetchData]);
 
   if (loading) {
     return (
@@ -29,9 +32,9 @@ function BusinessStrategy({ setActivePage, idea }) {
   }
 
   if (!data) return (
-    <div className="flex flex-col items-center justify-center p-20 bg-red-900/10 border border-red-500/20 rounded-3xl">
+    <div className="flex flex-col items-center justify-center p-20 bg-red-900/10 border border-red-500/20 rounded-[3rem] text-center min-h-[50vh]">
        <p className="text-red-500 font-mono text-sm tracking-widest uppercase mb-4">Strategy Node Offline</p>
-       <button onClick={() => window.location.reload()} className="text-white text-sm underline uppercase">Restart Protocol</button>
+       <button onClick={() => fetchData(true)} className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase hover:bg-white/10 tracking-widest">Re-Scan Environment (Fresh Intel)</button>
     </div>
   );
 
@@ -39,9 +42,26 @@ function BusinessStrategy({ setActivePage, idea }) {
     <div className="min-h-screen bg-[#05000a] text-white p-6 md:p-10">
       
       {/* Header Section */}
-      <div className="w-full max-w-6xl mx-auto mb-12">
-         <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Startup Blueprint</h1>
-         <p className="text-indigo-400 font-mono text-sm uppercase tracking-widest">Sovereign Strategic Architecture • Co-Founder Series</p>
+      <div className="w-full max-w-6xl mx-auto mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+         <div>
+            <div className="flex items-center gap-2 mb-3">
+               <span className="px-2 py-0.5 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[8px] font-black uppercase tracking-widest rounded">Sovereign Strategic Architecture</span>
+            </div>
+            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Business Strategy</h1>
+            <p className="text-indigo-400 font-mono text-xs uppercase tracking-[0.3em]">Co-Founder Strategic Series • Unit Logic Verified</p>
+         </div>
+         <div className="flex flex-col items-end gap-3">
+            <button 
+              onClick={() => fetchData(true)}
+              className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+            >
+              <span className="animate-spin-slow">↻</span> Force Re-Scan
+            </button>
+            <div className="text-right hidden md:block">
+               <p className="text-white/20 font-mono text-[10px] uppercase tracking-widest mb-1 italic italic">Draft Status: FINALIZED</p>
+               <p className="text-white/40 font-mono text-[8px] uppercase tracking-widest">Protocol Version: 7.2.0X</p>
+            </div>
+         </div>
       </div>
 
       <div className="max-w-6xl mx-auto space-y-8">

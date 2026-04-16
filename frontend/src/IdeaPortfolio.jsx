@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "./api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 function IdeaPortfolio({ setActivePage, setLatestIdea }) {
   const [ideas, setIdeas] = useState([]);

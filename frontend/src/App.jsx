@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Home from "./Home";
 import Login from "./Login";
 import Dashboard from "./Dashboard";
@@ -9,19 +9,33 @@ import CustomCursor from "./CustomCursor";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+/**
+ * LayoutWrapper handles global UI components to prevent unmounting during page transitions.
+ */
+function LayoutWrapper({ children }) {
+  return (
+    <>
+      <CustomCursor />
+      <ToastContainer theme="dark" />
+      {children}
+    </>
+  );
+}
+
+/**
+ * ProtectedRoute checks for authentication and redirects to login if the token is missing.
+ */
 function ProtectedRoute({ children, setPage, targetPage, setIntendedPage }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const token = localStorage.getItem("launchmate_token") || localStorage.getItem("token");
 
   useEffect(() => {
-    const token = localStorage.getItem("launchmate_token") || localStorage.getItem("token");
     if (!token) {
-      setIsAuthenticated(false);
       setIntendedPage(targetPage);
       setPage("login");
     }
-  }, [setPage, targetPage, setIntendedPage]);
+  }, [token, setPage, targetPage, setIntendedPage]);
 
-  if (!isAuthenticated || (!localStorage.getItem("token") && !localStorage.getItem("launchmate_token"))) return null;
+  if (!token) return null;
 
   return children;
 }
@@ -49,57 +63,62 @@ function App() {
       "launchmate_analysis_data"
     ];
     keysToRemove.forEach(key => localStorage.removeItem(key));
-    setPage("home");
     window.location.reload();
   };
 
-  // INTERCEPT PUBLIC URLS
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.get("shared")) {
+  // 4. INTERCEPT PUBLIC URLS (SHARED LINKS)
+  const sharedId = useMemo(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("shared");
+  }, []);
+
+  if (sharedId) {
     return (
-       <>
-         <CustomCursor />
-         <ToastContainer theme="dark" />
-         <PublicPitch />
-       </>
+      <LayoutWrapper>
+        <PublicPitch />
+      </LayoutWrapper>
     );
   }
 
-  const withGlobalUI = (Component) => (
-    <>
-      <CustomCursor />
-      <ToastContainer theme="dark" />
-      {Component}
-    </>
-  );
+  // 5. PAGE ROUTING LOGIC
+  const renderPage = () => {
+    if (page === "home") return <Home setPage={setPage} />;
+    
+    if (page === "login") {
+      return (
+        <Login 
+          setPage={setPage} 
+          intendedPage={intendedPage} 
+          setIntendedPage={setIntendedPage} 
+        />
+      );
+    }
+    
+    if (["product", "features", "about", "learn"].includes(page)) {
+      return <LearnMore setPage={setPage} section={page} />;
+    }
 
-  if (page === "home") return withGlobalUI(<Home setPage={setPage} />);
-  
-  if (page === "login") {
-    return withGlobalUI(<Login setPage={setPage} intendedPage={intendedPage} setIntendedPage={setIntendedPage} />);
-  }
-  
-  if (page === "product" || page === "features" || page === "about" || page === "learn") {
-    return withGlobalUI(<LearnMore setPage={setPage} section={page} />);
-  }
+    if (page === "dashboard") {
+      return (
+        <ProtectedRoute setPage={setPage} targetPage="dashboard" setIntendedPage={setIntendedPage}>
+          <Dashboard setPage={setPage} onLogout={handleLogout} />
+        </ProtectedRoute>
+      );
+    }
+    
+    if (page === "input") {
+      return (
+        <ProtectedRoute setPage={setPage} targetPage="input" setIntendedPage={setIntendedPage}>
+          <Input setPage={setPage} />
+        </ProtectedRoute>
+      );
+    }
 
-  if (page === "dashboard") {
-    return (
-      <ProtectedRoute setPage={setPage} targetPage="dashboard" setIntendedPage={setIntendedPage}>
-        {withGlobalUI(<Dashboard setPage={setPage} onLogout={handleLogout} />)}
-      </ProtectedRoute>
-    );
-  }
-  
-  if (page === "input") {
-    return (
-      <ProtectedRoute setPage={setPage} targetPage="input" setIntendedPage={setIntendedPage}>
-        {withGlobalUI(<Input setPage={setPage} />)}
-      </ProtectedRoute>
-    );
-  }
+    // Default Fallback
+    return <Home setPage={setPage} />;
+  };
 
-  return withGlobalUI(<div>Dashboard coming...</div>);
+  return <LayoutWrapper>{renderPage()}</LayoutWrapper>;
 }
 
 export default App;

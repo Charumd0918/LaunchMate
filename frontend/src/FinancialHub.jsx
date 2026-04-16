@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "./api";
 import { 
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip
@@ -11,40 +11,55 @@ function FinancialHub({ setActivePage, idea }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchFinancials = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/financial-hub?idea=${encodeURIComponent(idea)}`);
-        if (response.data.success) {
-          setData(response.data.data);
-        } else {
-          setError("Could not calculate financials.");
-        }
-      } catch (err) {
-        console.error("Error fetching financial hub:", err);
-        setError("Network error. Please try again.");
-      } finally {
-        setLoading(false);
+  const fetchFinancials = useCallback(async (refresh = false) => {
+    try {
+      setLoading(true);
+      setError(null);
+      const url = `/financial-hub?idea=${encodeURIComponent(idea)}${refresh ? '&refresh=true' : ''}`;
+      const response = await api.get(url);
+      if (response.data.success) {
+        setData(response.data.data);
+      } else {
+        setError("Could not calculate financials.");
       }
-    };
-    if (idea) fetchFinancials();
+    } catch (err) {
+      console.error("Error fetching financial hub:", err);
+      setError("Network error. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   }, [idea]);
+
+  useEffect(() => {
+    if (idea) fetchFinancials();
+  }, [idea, fetchFinancials]);
+
+  const formatAmount = (val) => {
+    if (typeof val === 'number') {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency',
+        currency: 'INR',
+        maximumFractionDigits: 0
+      }).format(val);
+    }
+    return val;
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#05000a] flex flex-col items-center justify-center p-20">
-        <div className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-amber-400 font-mono animate-pulse tracking-widest uppercase text-sm">Computing Fiscal Blueprint...</p>
+        <div className="w-16 h-16 border-4 border-amber-500/10 border-t-amber-500 rounded-full animate-spin mb-6"></div>
+        <p className="text-amber-400 font-mono animate-pulse tracking-[0.4em] uppercase text-[10px] mb-2">Simulating Capital Logic...</p>
+        <p className="text-gray-500 font-mono text-[8px] uppercase tracking-widest">Auditing burn efficiency & revenue nodes</p>
       </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="min-h-screen bg-[#05000a] flex flex-col items-center justify-center p-20">
+      <div className="min-h-screen bg-[#05000a] flex flex-col items-center justify-center p-20 text-center">
         <p className="text-red-500 font-mono mb-4">FAILED TO GENERATE FINANCIAL MODEL.</p>
-        <button onClick={() => window.location.reload()} className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold uppercase hover:bg-white/10">Retry Analysis</button>
+        <button onClick={() => fetchFinancials(true)} className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-sm font-bold uppercase hover:bg-white/10">Re-Scan Environment (Fresh Intel)</button>
       </div>
     );
   }
@@ -53,9 +68,26 @@ function FinancialHub({ setActivePage, idea }) {
     <div className="min-h-screen bg-[#05000a] text-white p-6 md:p-10 flex flex-col items-center">
       
       {/* Header */}
-      <div className="w-full max-w-6xl mb-12">
-        <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Financial Hub</h1>
-        <p className="text-amber-500 font-mono text-sm uppercase tracking-[0.4em]">Simple Fiscal Planning & Revenue Logic</p>
+      <div className="w-full max-w-6xl mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+         <div>
+            <div className="flex items-center gap-2 mb-3">
+               <span className="px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/30 text-[8px] font-black uppercase tracking-widest rounded">Capital Audit Verified</span>
+            </div>
+            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Financial Hub</h1>
+            <p className="text-amber-500 font-mono text-xs uppercase tracking-[0.3em]">Fiscal Blueprint • Revenue Flow Analysis</p>
+         </div>
+         <div className="flex flex-col items-end gap-3">
+            <button 
+              onClick={() => fetchFinancials(true)}
+              className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+            >
+              <span className="animate-spin-slow">↻</span> Force Re-Scan
+            </button>
+            <div className="text-right hidden md:block">
+               <p className="text-white/20 font-mono text-[10px] uppercase tracking-widest mb-1 italic italic">Currency: INR (Sovereign Base)</p>
+               <p className="text-white/40 font-mono text-[8px] uppercase tracking-widest">Logic Node: 0x99F (Economic)</p>
+            </div>
+         </div>
       </div>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -67,7 +99,7 @@ function FinancialHub({ setActivePage, idea }) {
           <div className="p-8 rounded-[2.5rem] bg-gradient-to-br from-amber-500/10 to-transparent border border-amber-500/20 relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-6 opacity-5 text-4xl font-black">START</div>
             <h3 className="text-sm font-black text-amber-500 uppercase tracking-widest mb-4">Estimated Initial Cost</h3>
-            <div className="text-5xl font-black text-white mb-4 tracking-tighter">₹{data.initial_cost.amount}</div>
+            <div className="text-5xl font-black text-white mb-4 tracking-tighter">{formatAmount(data.initial_cost.amount)}</div>
             <p className="text-gray-200 text-lg leading-relaxed italic font-medium">"{data.initial_cost.description}"</p>
           </div>
 
@@ -78,7 +110,7 @@ function FinancialHub({ setActivePage, idea }) {
                 <div className="px-4 py-2 rounded-xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 font-black text-sm uppercase tracking-widest">
                    {data.pricing.model}
                 </div>
-                <div className="text-3xl font-black text-white font-mono">₹{data.pricing.price}</div>
+                <div className="text-3xl font-black text-white font-mono">{formatAmount(data.pricing.price)}</div>
              </div>
              <p className="text-gray-200 text-lg leading-relaxed italic border-l-4 border-indigo-500/30 pl-4">
                 "{data.pricing.reason}"
@@ -114,7 +146,7 @@ function FinancialHub({ setActivePage, idea }) {
                       <div key={i} className="flex justify-between items-center p-5 rounded-2xl bg-black/40 border border-white/5 group hover:border-amber-500/20 transition-all">
                         <div>
                           <p className="text-sm font-black text-gray-400 uppercase tracking-tighter mb-1">{item.category}</p>
-                          <p className="text-2xl font-black text-white font-mono">₹{item.cost}</p>
+                          <p className="text-2xl font-black text-white font-mono">{formatAmount(item.cost)}</p>
                         </div>
                         <div className="w-3 h-3 rounded-full" style={{ backgroundColor: COLORS[i % COLORS.length] }}></div>
                       </div>
@@ -161,14 +193,14 @@ function FinancialHub({ setActivePage, idea }) {
                              <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
                                 <div className="h-full bg-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.5)]" style={{ width: '40%' }}></div>
                              </div>
-                             <span className="text-sm font-black text-amber-500 w-20 text-right">₹{data.visual_data.cost_vs_revenue.cost}</span>
+                             <span className="text-sm font-black text-amber-500 w-20 text-right">{formatAmount(data.visual_data.cost_vs_revenue.cost)}</span>
                           </div>
                           <div className="flex items-center gap-6">
                              <span className="text-xs font-black text-gray-600 w-20 uppercase">Expected</span>
                              <div className="flex-1 h-3 bg-white/5 rounded-full overflow-hidden">
                                 <div className="h-full bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)]" style={{ width: '100%' }}></div>
                              </div>
-                             <span className="text-sm font-black text-emerald-500 w-20 text-right">₹{data.visual_data.cost_vs_revenue.expected_revenue}</span>
+                             <span className="text-sm font-black text-emerald-500 w-20 text-right">{formatAmount(data.visual_data.cost_vs_revenue.expected_revenue)}</span>
                           </div>
                        </div>
                     </div>

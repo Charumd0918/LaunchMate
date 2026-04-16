@@ -1,7 +1,17 @@
 import os
-from fastapi import FastAPI, Depends, APIRouter
+from fastapi import FastAPI, Depends, APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from pymongo.errors import PyMongoError
 from database import ideas_collection, db
+
+# --- STARTUP ENVIRONMENT VALIDATION ---
+REQUIRED_VARS = ["MONGO_URI", "JWT_SECRET", "GEMINI_API_KEY"]
+missing_vars = [v for v in REQUIRED_VARS if not os.getenv(v)]
+if missing_vars:
+    print(f"CRITICAL WARNING: Missing environment variables: {', '.join(missing_vars)}")
+# --------------------------------------
+
 from gemini import (test_gemini, validate_idea, startup_health_score, generate_business_plan, 
                     generate_pitch, first_users_strategy, detect_risks, advanced_marketing_strategy, 
                     evaluate_daily_progress, chat_with_cofounder, generate_startup_analytics, generate_advanced_strategy, find_competitors, generate_logo_prompt, generate_pdf_blueprint,
@@ -29,6 +39,22 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- GLOBAL EXCEPTION HANDLERS ---
+@app.exception_handler(PyMongoError)
+async def pymongo_exception_handler(request, exc):
+    return JSONResponse(
+        status_code=503,
+        content={"success": False, "error": "Database Service Unavailable", "detail": "The database is currently unreachable. Please try again later."},
+    )
+
+@app.exception_handler(ConnectionError)
+async def connection_error_handler(request, exc):
+    return JSONResponse(
+        status_code=503,
+        content={"success": False, "error": "System Connection Error", "detail": str(exc)},
+    )
+# ---------------------------------
+
 # API Router setup
 api_router = APIRouter(prefix="/api")
 
@@ -42,19 +68,39 @@ api_router.include_router(auth_router, prefix="/auth")
 
 @app.get("/")
 def home():
-    return {"message": "LaunchMate backend is running"}
+    return {
+        "status": "online",
+        "message": "LaunchMate Strategic Backend is operational",
+        "version": "1.1.0-robust"
+    }
+
+@api_router.get("/health")
+def health_check():
+    db_status = "online"
+    try:
+        # Actual ping to the raw database via our proxy
+        db.admin.command('ping')
+    except:
+        db_status = "offline"
+        
+    return {
+        "status": "online",
+        "database": db_status,
+        "environment": "configured" if not missing_vars else "partial"
+    }
 
 @api_router.get("/test-gemini")
 def gemini_test(current_user: UserOut = Depends(get_current_user)):
     return {"response": test_gemini()}
 
 @api_router.get("/validate")
-def validate(idea: str, current_user: UserOut = Depends(get_current_user)):
+def validate(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
         # Check cache first with Sovereign Validation
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "validate"})
-        if cached and "demandLevel" in cached.get("result", {}):
-            return {"result": cached["result"], "message": "Loaded from cache", "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "validate"})
+            if cached and "demandLevel" in cached.get("result", {}):
+                return {"result": cached["result"], "message": "Loaded from cache", "cached": True}
 
         result = validate_idea(idea)
 
@@ -143,54 +189,58 @@ def get_latest_idea(current_user: UserOut = Depends(get_current_user)):
         return {"success": False, "error": str(e)}
 
 @api_router.get("/pitch")
-def pitch_deck(idea: str, current_user: UserOut = Depends(get_current_user)):
+def pitch_deck(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "pitch"})
-        if cached and "narrative_script" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "pitch"})
+            if cached and "narrative_script" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = generate_pitch(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "pitch"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
-@api_router.get("/risk-detector")
-def risk_detector(idea: str, current_user: UserOut = Depends(get_current_user)):
+@api_router.get("/risk")
+def risk_detector(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "risk"})
-        if cached and "overallThreatLevel" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "risk"})
+            if cached and "overall_fear_level" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = detect_risks(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "risk"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
 @api_router.get("/marketing")
-def marketing_strategy(idea: str, current_user: UserOut = Depends(get_current_user)):
+def marketing_strategy(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "marketing"})
-        if cached and "first_100_action_plan" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "marketing"})
+            if cached and "first_100_action_plan" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = advanced_marketing_strategy(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "marketing"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
 @api_router.get("/financial-hub")
-def financial_hub(idea: str, current_user: UserOut = Depends(get_current_user)):
+def financial_hub(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "financial_hub"})
-        if cached and "initial_cost" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "financial_hub"})
+            if cached and "initial_cost" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = generate_financial_hub(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "financial_hub"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -208,15 +258,16 @@ def analytics_projections(idea: str, current_user: UserOut = Depends(get_current
         return {"success": False, "error": str(e)}
 
 @api_router.get("/competitors")
-def competitors(idea: str, current_user: UserOut = Depends(get_current_user)):
+def competitors(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "competitors"})
-        if cached and "marketStatus" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "competitors"})
+            if cached and "marketStatus" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = find_competitors(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "competitors"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 
@@ -311,15 +362,16 @@ def get_public_pitch(idea_id: str):
         return {"success": False, "error": str(e)}
 
 @api_router.get("/strategy")
-def strategy_map(idea: str, current_user: UserOut = Depends(get_current_user)):
+def strategy_map(idea: str, refresh: bool = False, current_user: UserOut = Depends(get_current_user)):
     try:
-        cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "strategy"})
-        if cached and "problemStatement" in cached.get("result", {}): 
-            return {"success": True, "data": cached["result"], "cached": True}
+        if not refresh:
+            cached = analysis_cache.find_one({"user_id": current_user.id, "idea": idea, "type": "strategy"})
+            if cached and "problemStatement" in cached.get("result", {}): 
+                return {"success": True, "data": cached["result"], "cached": True}
 
         result = generate_advanced_strategy(idea)
         analysis_cache.update_one({"user_id": current_user.id, "idea": idea, "type": "strategy"}, {"$set": {"result": result}}, upsert=True)
-        return {"success": True, "data": result}
+        return {"success": True, "data": result, "cached": False}
     except Exception as e:
         return {"success": False, "error": str(e)}
 

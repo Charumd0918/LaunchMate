@@ -13,7 +13,9 @@ function ProgressGrowthTracker({ setActivePage, idea }) {
         try {
             const response = await api.get(`/progress/check-in?idea=${encodeURIComponent(idea)}`);
             if (response.data.history) setHistory(response.data.history);
-        } catch (e) {}
+        } catch (e) {
+            console.error("Error fetching history:", e);
+        }
     };
     fetchHistory();
   }, [idea]);

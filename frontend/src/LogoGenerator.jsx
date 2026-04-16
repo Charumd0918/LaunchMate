@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import api from "./api";
 
-function LogoGenerator({ setActivePage, idea }) {
+function LogoGenerator({ idea }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 

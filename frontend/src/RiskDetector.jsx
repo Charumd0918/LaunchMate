@@ -1,27 +1,28 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import api from "./api";
-import { motion } from "framer-motion";
 
 function RiskDetector({ setActivePage, idea }) {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchRisks = async () => {
-      try {
-        setLoading(true);
-        const response = await api.get(`/risk?idea=${encodeURIComponent(idea)}`);
-        if (response.data.success) {
-          setData(response.data.data);
-        }
-      } catch (err) {
-        console.error("Error fetching risk detector:", err);
-      } finally {
-        setLoading(false);
+  const fetchRisks = useCallback(async (refresh = false) => {
+    try {
+      setLoading(true);
+      const url = `/risk?idea=${encodeURIComponent(idea)}${refresh ? '&refresh=true' : ''}`;
+      const response = await api.get(url);
+      if (response.data.success) {
+        setData(response.data.data);
       }
-    };
-    if (idea) fetchRisks();
+    } catch (err) {
+      console.error("Error fetching risk detector:", err);
+    } finally {
+      setLoading(false);
+    }
   }, [idea]);
+
+  useEffect(() => {
+    if (idea) fetchRisks();
+  }, [idea, fetchRisks]);
 
   if (loading) {
     return (
@@ -35,7 +36,12 @@ function RiskDetector({ setActivePage, idea }) {
   if (!data) return (
     <div className="min-h-screen bg-[#05000a] flex flex-col items-center justify-center p-20 text-center">
       <p className="text-red-500 font-mono uppercase text-sm mb-4">THREAT SENSOR OFFLINE</p>
-      <button onClick={() => window.location.reload()} className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase hover:bg-white/10 tracking-widest">Re-Scan Environment</button>
+      <button 
+        onClick={() => fetchRisks(true)} 
+        className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase hover:bg-white/10 tracking-widest"
+      >
+        Re-Scan Environment (Fresh Intel)
+      </button>
     </div>
   );
 
@@ -43,9 +49,17 @@ function RiskDetector({ setActivePage, idea }) {
     <div className="min-h-screen bg-[#05000a] text-white p-6 md:p-10 flex flex-col items-center">
       
       {/* Header */}
-      <div className="w-full max-w-6xl mb-12">
-        <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Risk Detector</h1>
-        <p className="text-orange-500 font-mono text-sm uppercase tracking-[0.4em]">Identifying Risks & Building Your Shield</p>
+      <div className="w-full max-w-6xl mb-12 flex flex-col md:flex-row justify-between items-start gap-6">
+        <div>
+           <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Risk Detector</h1>
+           <p className="text-orange-500 font-mono text-sm uppercase tracking-[0.4em]">Identifying Risks & Building Your Shield</p>
+        </div>
+        <button 
+          onClick={() => fetchRisks(true)}
+          className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+        >
+          <span className="animate-spin-slow">↻</span> Force Re-Scan
+        </button>
       </div>
 
       <div className="w-full max-w-6xl space-y-12">

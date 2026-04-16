@@ -1,5 +1,6 @@
 import { useState } from "react";
 import api from "./api";
+import { motion, AnimatePresence } from "framer-motion";
 import CinematicLoader from "./CinematicLoader";
 
 function Input({ setPage }) {

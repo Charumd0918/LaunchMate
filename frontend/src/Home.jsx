@@ -1,7 +1,5 @@
-import { motion, useAnimation, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import ModernBackground from "./ModernBackground";
-
-import { useState, useEffect, useRef } from "react";
 
 function Home({ setPage }) {
   const handleGetStarted = () => {

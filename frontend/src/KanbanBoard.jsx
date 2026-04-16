@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "./api";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 function KanbanBoard({ setActivePage, idea }) {
   const [data, setData] = useState(null);
@@ -47,8 +47,9 @@ function KanbanBoard({ setActivePage, idea }) {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#05000a] flex flex-col items-center justify-center p-20">
-        <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
-        <p className="text-blue-400 font-mono animate-pulse tracking-widest uppercase text-sm">Drafting Launch Sequence...</p>
+        <div className="w-16 h-16 border-4 border-blue-500/10 border-t-blue-500 rounded-full animate-spin mb-6"></div>
+        <p className="text-blue-400 font-mono animate-pulse tracking-[0.4em] uppercase text-[10px] mb-2">Engaging Execution Protocol...</p>
+        <p className="text-gray-500 font-mono text-[8px] uppercase tracking-widest">Compiling high-velocity milestones & tactical blitz</p>
       </div>
     );
   }
@@ -66,11 +67,18 @@ function KanbanBoard({ setActivePage, idea }) {
     <div className="min-h-screen bg-[#05000a] text-white p-6 md:p-10 flex flex-col items-center">
       
       {/* Header */}
-      <div className="w-full max-w-6xl mb-12 flex flex-col md:flex-row justify-between items-start gap-6">
-        <div>
-           <h1 className="text-3xl font-black text-white italic tracking-tighter uppercase mb-2">Step-by-Step Launch Plan</h1>
-           <p className="text-blue-500 font-mono text-sm uppercase tracking-[0.4em]">4 Phases from Idea to Profit</p>
-        </div>
+      <div className="w-full max-w-6xl mb-16 flex flex-col md:flex-row md:items-end justify-between gap-6">
+         <div>
+            <div className="flex items-center gap-2 mb-3">
+               <span className="px-2 py-0.5 bg-blue-500/20 text-blue-400 border border-blue-500/30 text-[8px] font-black uppercase tracking-widest rounded">Sovereign Execution Mode</span>
+            </div>
+            <h1 className="text-4xl font-black text-white italic tracking-tighter uppercase mb-2">Launch Plan</h1>
+            <p className="text-blue-500 font-mono text-xs uppercase tracking-[0.3em]">Strategic Deployment • 4-Phase Tactical Roadmap</p>
+         </div>
+         <div className="hidden md:block text-right">
+            <p className="text-white/20 font-mono text-[10px] uppercase tracking-widest mb-1 italic italic">Priority Level: CRITICAL</p>
+            <p className="text-white/40 font-mono text-[8px] uppercase tracking-widest">Logic Node: 0x44B (Tactical)</p>
+         </div>
       </div>
 
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-12 gap-10">

@@ -1,70 +1,70 @@
 import React from "react";
 
-function LearnMore({ setPage, section }) {
-  // Common NavBar
-  const NavBar = () => (
-    <header className="sticky top-0 z-50 bg-black/50 backdrop-blur-md border-b border-purple-900/30">
-      <nav className="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto">
-        <div className="flex lg:flex-1">
-          <span
-            className="text-white font-bold text-xl cursor-pointer hover:text-purple-400 transition"
-            onClick={() => setPage("home")}
-          >
-            LaunchMate 🚀
-          </span>
-        </div>
-        <div className="hidden lg:flex lg:gap-x-12">
-            <span
-              onClick={() => setPage("product")}
-              className={`text-sm font-semibold cursor-pointer transition ${section === 'product' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
-            >
-              Product
-            </span>
-            <span
-              onClick={() => setPage("features")}
-              className={`text-sm font-semibold cursor-pointer transition ${section === 'features' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
-            >
-              Features
-            </span>
-            <span
-              onClick={() => setPage("about")}
-              className={`text-sm font-semibold cursor-pointer transition ${section === 'about' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
-            >
-              About
-            </span>
-        </div>
-
-        <div className="flex flex-1 justify-end">
-          <button
-            onClick={() => setPage("home")}
-            className="text-sm font-semibold text-purple-400 hover:text-white transition bg-purple-900/40 px-4 py-2 rounded-full border border-purple-500/20"
-          >
-            ← Back to Home
-          </button>
-        </div>
-      </nav>
-    </header>
-  );
-
-  const Footer = () => (
-    <footer className="border-t border-purple-900/30 bg-black/20 mt-20">
-      <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="text-center md:text-left">
-          <span className="text-xl font-bold text-white">LaunchMate</span>
-          <p className="text-sm text-gray-500 mt-2">© 2026 LaunchMate Inc. All rights reserved.</p>
-        </div>
-        <div className="flex items-center gap-6">
-          <a href="mailto:hello@launchmate.io" className="text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
-            <span>📧</span> hello@launchmate.io
-          </a>
-        </div>
+// Common NavBar
+const NavBar = ({ setPage, section }) => (
+  <header className="sticky top-0 z-50 bg-black/50 backdrop-blur-md border-b border-purple-900/30">
+    <nav className="flex items-center justify-between p-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="flex lg:flex-1">
+        <span
+          className="text-white font-bold text-xl cursor-pointer hover:text-purple-400 transition"
+          onClick={() => setPage("home")}
+        >
+          LaunchMate 🚀
+        </span>
       </div>
-    </footer>
-  );
+      <div className="hidden lg:flex lg:gap-x-12">
+          <span
+            onClick={() => setPage("product")}
+            className={`text-sm font-semibold cursor-pointer transition ${section === 'product' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
+          >
+            Product
+          </span>
+          <span
+            onClick={() => setPage("features")}
+            className={`text-sm font-semibold cursor-pointer transition ${section === 'features' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
+          >
+            Features
+          </span>
+          <span
+            onClick={() => setPage("about")}
+            className={`text-sm font-semibold cursor-pointer transition ${section === 'about' ? 'text-purple-400' : 'text-white hover:text-purple-300'}`}
+          >
+            About
+          </span>
+      </div>
 
+      <div className="flex flex-1 justify-end">
+        <button
+          onClick={() => setPage("home")}
+          className="text-sm font-semibold text-purple-400 hover:text-white transition bg-purple-900/40 px-4 py-2 rounded-full border border-purple-500/20"
+        >
+          ← Back to Home
+        </button>
+      </div>
+    </nav>
+  </header>
+);
+
+const Footer = () => (
+  <footer className="border-t border-purple-900/30 bg-black/20 mt-20">
+    <div className="max-w-7xl mx-auto px-6 py-12 flex flex-col md:flex-row justify-between items-center gap-6">
+      <div className="text-center md:text-left">
+        <span className="text-xl font-bold text-white">LaunchMate</span>
+        <p className="text-sm text-gray-500 mt-2">© 2026 LaunchMate Inc. All rights reserved.</p>
+      </div>
+      <div className="flex items-center gap-6">
+        <a href="mailto:hello@launchmate.io" className="text-gray-400 hover:text-purple-400 transition flex items-center gap-2">
+          <span>📧</span> hello@launchmate.io
+        </a>
+      </div>
+    </div>
+  </footer>
+);
+
+function LearnMore({ setPage, section }) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#0d001a] via-[#000000] to-[#200040] text-white selection:bg-purple-500/30 flex flex-col">
-      <NavBar />
+      <NavBar setPage={setPage} section={section} />
       
       <main className="flex-grow max-w-5xl mx-auto px-6 py-20 w-full">
         

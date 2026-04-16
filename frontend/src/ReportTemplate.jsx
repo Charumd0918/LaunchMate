@@ -1,7 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
 const ReportTemplate = ({ data }) => {
+  const [reportId] = useState(() => `LM-${Math.random().toString(36).substr(2, 9).toUpperCase()}`);
+  const [reportDate] = useState(() => new Date().toLocaleDateString());
+
   if (!data || !data.blueprintMarkdown) return null;
 
   const { blueprintMarkdown, idea } = data;
@@ -184,7 +187,7 @@ const ReportTemplate = ({ data }) => {
           <h1 className="cover-title">{idea || "Tactical Idea"}</h1>
           <div className="cover-subtitle">High-Fidelity Master Blueprint & Architectural Audit</div>
           <div className="cover-timestamp">
-            ID: LM-{Math.random().toString(36).substr(2, 9).toUpperCase()} • Generated {new Date().toLocaleDateString()}
+            ID: {reportId} • Generated {reportDate}
           </div>
         </div>
 

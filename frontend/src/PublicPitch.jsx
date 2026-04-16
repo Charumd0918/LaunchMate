@@ -28,6 +28,7 @@ function PublicPitch() {
           setError("Pitch not found or is private.");
         }
       } catch (err) {
+        console.error("Network error fetching pitch:", err);
         setError("Network error fetching pitch.");
       } finally {
         setLoading(false);
@@ -57,53 +58,70 @@ function PublicPitch() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0d001a] to-black text-white py-20 px-6">
+    <div className="min-h-screen bg-[#05000a] text-white py-20 px-6 selection:bg-indigo-500/30">
       <div className="max-w-4xl mx-auto">
+        
+        {/* Sovereign Header */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          transition={{ duration: 0.8 }}
+          className="text-center mb-20"
         >
-          <p className="text-purple-400 font-bold tracking-widest text-sm uppercase mb-4">Founder Pitch Deck</p>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600 mb-6 leading-tight">
-            "{data.tagline}"
+          <div className="flex items-center justify-center gap-2 mb-6">
+             <span className="px-3 py-1 bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 text-[10px] font-black uppercase tracking-[0.3em] rounded-full">Founder Pitch Deck</span>
+             <span className="text-white/20 font-mono text-[10px] uppercase tracking-widest hidden md:block">Logic Integrity: 99.8%</span>
+          </div>
+          
+          <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter uppercase mb-8 leading-none">
+            {data.tagline}
           </h1>
-          <p className="text-xl text-gray-300 italic max-w-2xl mx-auto border-l-4 border-purple-500/50 pl-6 py-2">
-            {ideaStr}
-          </p>
+          
+          <div className="max-w-2xl mx-auto p-8 rounded-[2.5rem] bg-indigo-950/10 border border-indigo-500/20 backdrop-blur-xl">
+             <p className="text-xl text-indigo-100 italic leading-relaxed font-medium">
+               "{ideaStr}"
+             </p>
+          </div>
         </motion.div>
 
+        {/* Executive Summary Section */}
         <motion.div 
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="bg-[#140026] rounded-3xl p-10 border border-purple-500/20 shadow-2xl relative overflow-hidden mb-10"
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="bg-white/[0.02] rounded-[3rem] p-12 md:p-16 border border-white/5 shadow-2xl relative overflow-hidden mb-12 group hover:border-indigo-500/20 transition-all"
         >
-          <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
-          
-          <h2 className="text-2xl font-bold text-white mb-6 border-b border-purple-500/20 pb-4">Elevator Pitch</h2>
-          <p className="text-lg text-gray-200 leading-relaxed relative z-10">
-            {data.elevator_pitch}
-          </p>
+          <div className="absolute top-0 right-0 p-12 opacity-[0.02] text-9xl font-black italic select-none">SUM</div>
+          <div className="relative z-10">
+             <h2 className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.4em] mb-8 font-mono">01. Elevator Pitch</h2>
+             <p className="text-2xl text-gray-200 leading-relaxed font-semibold italic">
+               {data.elevator_pitch}
+             </p>
+          </div>
         </motion.div>
 
+        {/* Strategic Narrative Section */}
         <motion.div 
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="bg-black/60 rounded-3xl p-10 border border-white/5 shadow-2xl mb-12"
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="bg-gradient-to-br from-[#0a0014] to-black rounded-[4rem] p-12 md:p-20 border border-white/5 shadow-2xl mb-16 relative overflow-hidden"
         >
-          <h2 className="text-2xl font-bold text-purple-300 mb-6 border-b border-purple-500/20 pb-4">The Complete Vision</h2>
-          <p className="text-base text-gray-300 whitespace-pre-line leading-loose">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500/30 to-transparent"></div>
+          <h2 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-12 font-mono">02. The Complete Vision</h2>
+          <p className="text-lg md:text-xl text-gray-300 whitespace-pre-line leading-relaxed font-medium">
             {data.investor_pitch}
           </p>
         </motion.div>
 
-        <div className="text-center border-t border-purple-500/20 pt-10">
-          <p className="text-gray-500 text-sm mb-4">Empowered by LaunchMate AI</p>
-          <a href="/" className="inline-block px-6 py-2 bg-purple-600/20 text-purple-400 font-bold rounded-full border border-purple-500/30 hover:bg-purple-600/40 transition">
-            Start Your Own Startup
+        {/* Sovereign Footer */}
+        <div className="text-center border-t border-white/5 pt-16">
+          <div className="mb-8">
+             <p className="text-white/20 font-mono text-[10px] uppercase tracking-widest mb-1 italic">Sovereign Intel Node: 0x82A (Public)</p>
+             <p className="text-indigo-400/40 font-mono text-[8px] uppercase tracking-widest">Empowered by LaunchMate Strategic AI</p>
+          </div>
+          <a href="/" className="inline-block px-10 py-4 bg-white text-black font-black text-xs uppercase tracking-[0.2em] rounded-full hover:scale-105 transition-all shadow-[0_20px_50px_rgba(255,255,255,0.1)]">
+            Analyze Your Venture
           </a>
         </div>
       </div>

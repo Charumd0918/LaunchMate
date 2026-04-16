@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
-function Budget({ setActivePage }) {
+function Budget() {
   const [startingCapital, setStartingCapital] = useState(500000); // Default ₹5,00,000
   
   // Monthly costs
@@ -9,15 +9,8 @@ function Budget({ setActivePage }) {
   const [salaries, setSalaries] = useState(80000);
   const [misc, setMisc] = useState(15000);
 
-  const [runway, setRunway] = useState(0);
-
-  useEffect(() => {
-    const totalMonthlyBurn = servers + marketing + salaries + misc;
-    if (totalMonthlyBurn === 0) setRunway(999);
-    else setRunway((startingCapital / totalMonthlyBurn).toFixed(1));
-  }, [startingCapital, servers, marketing, salaries, misc]);
-
   const totalMonthlyBurn = servers + marketing + salaries + misc;
+  const runway = totalMonthlyBurn === 0 ? 999 : (startingCapital / totalMonthlyBurn).toFixed(1);
 
   const formatIN = (num) => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num);
 

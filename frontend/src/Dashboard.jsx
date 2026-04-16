@@ -27,27 +27,13 @@ import budgetImg from "./assets/budget.png";
 import marketingImg from "./assets/marketing.png";
 import pitchImg from "./assets/pitch.png";
 import analyticsImg from "./assets/analytics.png";
-import placeholderImg from "./assets/hero.png";
 import riskImg from "./assets/risk.jpg";
 import progressImg from "./assets/progress.jpg";
 function Dashboard({ setPage, onLogout }) {
   const [activePage, setActivePage] = useState("main");
   const [latestIdea, setLatestIdea] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  const [fetchingStep, setFetchingStep] = useState("");
-  const [exportData, setExportData] = useState(null);
-  
-  const reportRef = useRef(null);
 
-  const handleLogout = () => {
-    if (onLogout) {
-      onLogout();
-    } else {
-      localStorage.removeItem("token");
-      window.location.reload();
-    }
-  };
 
   useEffect(() => {
     const localIdea = localStorage.getItem("launchmate_active_idea");
@@ -64,8 +50,6 @@ function Dashboard({ setPage, onLogout }) {
         }
       } catch (err) {
         console.error("Error fetching latest idea:", err);
-      } finally {
-        setLoading(false);
       }
     };
     fetchLatestIdea();
@@ -82,20 +66,17 @@ function Dashboard({ setPage, onLogout }) {
       const ideaStr = latestIdea.idea;
       const encodedIdea = encodeURIComponent(ideaStr);
       
-      const fetchModule = async (endpoint, label) => {
-        setFetchingStep(label);
+      const fetchModule = async (endpoint) => {
         const res = await api.get(`${endpoint}?idea=${encodedIdea}`);
         return res.data;
       };
 
-      const blueprintData = await fetchModule("/blueprint", "Compiling Executive Data...");
+      const blueprintData = await fetchModule("/blueprint");
       
       if (!blueprintData.success) {
         throw new Error(blueprintData.error || "Tactical Engine Link Failure");
       }
 
-      setFetchingStep("Drafting Professional Report...");
-      
       const { jsPDF } = await import("jspdf");
       const doc = new jsPDF({
         orientation: "portrait",
@@ -238,7 +219,7 @@ function Dashboard({ setPage, onLogout }) {
       doc.setFont("helvetica", "bold"); doc.setFontSize(14); doc.setTextColor(255, 255, 255);
       doc.text("EXECUTION ROADMAP", margin, y);
       y += 10;
-      data.roadmap.forEach((item, idx) => {
+      data.roadmap.forEach((item) => {
         checkPage(25);
         doc.setDrawColor(40, 40, 40); doc.line(margin, y - 4, pageWidth - margin, y - 4);
         doc.setFont("helvetica", "bold"); doc.setFontSize(10); doc.setTextColor(brandColor.r, brandColor.g, brandColor.b);
@@ -262,13 +243,11 @@ function Dashboard({ setPage, onLogout }) {
 
       doc.save(`LaunchMate_${ideaStr.replace(/\s+/g, '_')}_Strategic_Audit.pdf`);
       setIsExporting(false);
-      setFetchingStep("");
 
     } catch (err) {
       console.error("Export Error:", err);
       alert(`Export Protocol Failed: ${err.message || 'Check network connection.'}`);
       setIsExporting(false);
-      setFetchingStep("");
     }
   };
 
