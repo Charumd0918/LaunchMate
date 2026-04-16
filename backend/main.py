@@ -23,17 +23,20 @@ from pydantic import BaseModel
 app = FastAPI()
 
 # Configure CORS
+raw_frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173").rstrip("/")
+
 origins = [
     "http://localhost:5173",
     "http://localhost:5174",
     "http://127.0.0.1:5173",
     "http://127.0.0.1:5174",
-    os.getenv("FRONTEND_URL", "http://localhost:5173"),
+    raw_frontend_url,
+    f"{raw_frontend_url}/", # Allow both for safety
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"] if os.getenv("DEBUG_CORS") == "true" else origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
