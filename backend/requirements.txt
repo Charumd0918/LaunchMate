@@ -7,3 +7,4 @@ PyJWT
 pydantic
 pydantic[email]
 google-genai
+dnspython
