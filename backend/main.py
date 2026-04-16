@@ -58,6 +58,9 @@ async def connection_error_handler(request, exc):
 # API Router setup
 api_router = APIRouter(prefix="/api")
 
+# Include the main API router immediately to ensure mounting on cloud environments
+app.include_router(api_router)
+
 # Database collections for caching
 progress_collection = db["progress_logs"]
 kanban_collection = db["kanban_boards"]
@@ -588,6 +591,3 @@ def generate_blueprint(idea: str, current_user: UserOut = Depends(get_current_us
             
     except Exception as e:
         return {"success": False, "error": f"Critical Report Failure: {str(e)}"}
-
-# Include the main API router
-app.include_router(api_router)
